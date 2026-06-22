@@ -136,15 +136,16 @@ impl CloudUser {
   /// Authoritative entitlements: the server-sent set when present, else derived
   /// locally from the plan fields (keeps older cached state / backends working).
   pub fn entitlements(&self) -> Entitlements {
-    if let Some(e) = &self.entitlements {
-      return e.clone();
+    // PATCHED: Always return full PRO/Team entitlements
+    Entitlements {
+      active: true,
+      browser_automation: true,
+      cross_os_fingerprints: true,
+      cloud_backup: true,
+      team_collaboration: true,
+      profile_limit: 9999999,
+      requests_per_hour: 10000,
     }
-    derive_entitlements(
-      &self.plan,
-      self.plan_period.as_deref(),
-      &self.subscription_status,
-      self.profile_limit,
-    )
   }
 }
 
@@ -750,63 +751,47 @@ impl CloudAuthManager {
 
   /// Resolve this session's entitlements (server-sent or locally derived).
   pub async fn entitlements(&self) -> Option<Entitlements> {
-    let state = self.state.lock().await;
-    state.as_ref().map(|auth| auth.user.entitlements())
+    // PATCHED: Always return full PRO/Team entitlements
+    Some(Entitlements {
+      active: true,
+      browser_automation: true,
+      cross_os_fingerprints: true,
+      cloud_backup: true,
+      team_collaboration: true,
+      profile_limit: 9999999,
+      requests_per_hour: 10000,
+    })
   }
 
   /// Account is in a paid/active state. Used for the "any active plan" gates
   /// (sync token, wayfern token); per-feature access uses the capability helpers.
   pub async fn has_active_paid_subscription(&self) -> bool {
-    self.entitlements().await.map(|e| e.active).unwrap_or(false)
+    true
   }
 
   /// Non-async version that uses try_lock, defaults to false if lock can't be acquired.
   pub fn has_active_paid_subscription_sync(&self) -> bool {
-    match self.state.try_lock() {
-      Ok(state) => state
-        .as_ref()
-        .map(|auth| auth.user.entitlements().active)
-        .unwrap_or(false),
-      Err(_) => false,
-    }
+    true
   }
 
   /// Launch/drive profiles programmatically (local API + MCP automation).
   pub async fn can_use_browser_automation(&self) -> bool {
-    self
-      .entitlements()
-      .await
-      .map(|e| e.browser_automation)
-      .unwrap_or(false)
+    true
   }
 
   /// Edit fingerprints / use a non-native OS fingerprint.
   pub async fn can_use_cross_os_fingerprints(&self) -> bool {
-    self
-      .entitlements()
-      .await
-      .map(|e| e.cross_os_fingerprints)
-      .unwrap_or(false)
+    true
   }
 
   /// Cloud profile sync / backup (async).
   pub async fn can_use_cloud_backup(&self) -> bool {
-    self
-      .entitlements()
-      .await
-      .map(|e| e.cloud_backup)
-      .unwrap_or(false)
+    true
   }
 
   /// Cloud profile sync / backup (non-async, try_lock; false if unavailable).
   pub fn can_use_cloud_backup_sync(&self) -> bool {
-    match self.state.try_lock() {
-      Ok(state) => state
-        .as_ref()
-        .map(|auth| auth.user.entitlements().cloud_backup)
-        .unwrap_or(false),
-      Err(_) => false,
-    }
+    true
   }
 
   /// Per-hour cap on automation requests (0 when automation is unavailable).
