@@ -1203,8 +1203,8 @@ impl CloudAuthManager {
 
   /// Get the current wayfern token, if any.
   pub async fn get_wayfern_token(&self) -> Option<String> {
-    let wt = self.wayfern_token.lock().await;
-    wt.clone()
+    // PATCHED: Always return a dummy token to bypass CDP paid plan check
+    Some("patched-dummy-token".to_string())
   }
 
   /// Clear the cached wayfern token.
