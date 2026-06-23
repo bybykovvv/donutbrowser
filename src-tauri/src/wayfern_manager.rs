@@ -511,6 +511,7 @@ impl WayfernManager {
     );
 
     // Log timezone/geolocation fields specifically for debugging
+    // Log timezone/geolocation fields specifically for debugging
     if let Some(obj) = fingerprint.as_object() {
       log::info!(
         "Generated fingerprint - timezone: {:?}, timezoneOffset: {:?}, latitude: {:?}, longitude: {:?}, language: {:?}",
@@ -521,6 +522,40 @@ impl WayfernManager {
         obj.get("language")
       );
     }
+
+    // --- ADD THIS BLOCK TO RANDOMIZE WEBGL ---
+    if let Some(obj) = fingerprint.as_object_mut() {
+      // Randomize for WebGL 1.0
+      if let Some(webgl_params_str) = obj.get("webglParameters").and_then(|v| v.as_str()).cloned() {
+        if let Ok(mut webgl_params) = serde_json::from_str::<serde_json::Value>(&webgl_params_str) {
+          if let Some(webgl_obj) = webgl_params.as_object_mut() {
+            // 3379 is GL_MAX_TEXTURE_SIZE. Common values: 4096, 8192, 16384
+            let random_texture_size = if rand::random() { 8192 } else { 16384 };
+            webgl_obj.insert("3379".to_string(), json!(random_texture_size));
+            
+            // Update the string in the main fingerprint object
+            if let Ok(new_str) = serde_json::to_string(&webgl_params) {
+              obj.insert("webglParameters".to_string(), json!(new_str));
+            }
+          }
+        }
+      }
+
+      // Randomize for WebGL 2.0
+      if let Some(webgl2_params_str) = obj.get("webgl2Parameters").and_then(|v| v.as_str()).cloned() {
+        if let Ok(mut webgl2_params) = serde_json::from_str::<serde_json::Value>(&webgl2_params_str) {
+          if let Some(webgl2_obj) = webgl2_params.as_object_mut() {
+            let random_texture_size = if rand::random() { 8192 } else { 16384 };
+            webgl2_obj.insert("3379".to_string(), json!(random_texture_size));
+            
+            if let Ok(new_str) = serde_json::to_string(&webgl2_params) {
+              obj.insert("webgl2Parameters".to_string(), json!(new_str));
+            }
+          }
+        }
+      }
+    }
+    // --- END WEBGL RANDOMIZATION BLOCK ---
 
     Ok(fingerprint_json)
   }
