@@ -910,6 +910,23 @@ export function WayfernConfigForm({
             />
           </div>
 
+                    {/* WebGL2 Parameters (JSON) */}
+          <div className="space-y-3">
+            <Label>{t("fingerprint.webgl2ParametersJson")}</Label>
+            <Textarea
+              value={fingerprintConfig.webgl2Parameters ?? ""}
+              onChange={(e) => {
+                updateFingerprintConfig(
+                  "webgl2Parameters",
+                  e.target.value || undefined,
+                );
+              }}
+              placeholder='{"10752":0,"2849":1,"2884":false...}'
+              className="font-mono text-sm"
+              rows={4}
+            />
+          </div>
+
           {/* Canvas Noise Seed */}
           <div className="space-y-3">
             <Label>{t("fingerprint.canvasFingerprint")}</Label>
