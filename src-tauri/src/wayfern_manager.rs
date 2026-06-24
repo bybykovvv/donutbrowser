@@ -523,10 +523,11 @@ impl WayfernManager {
       );
     }
 
-    // --- ADD THIS BLOCK TO RANDOMIZE WEBGL ---
+        // --- ADD THIS BLOCK TO RANDOMIZE WEBGL ---
     if let Some(obj) = fingerprint.as_object_mut() {
       // Randomize for WebGL 1.0
-      if let Some(webgl_params_str) = obj.get("webglParameters").and_then(|v| v.as_str()).cloned() {
+      let webgl1_str = obj.get("webglParameters").and_then(|v| v.as_str()).map(|s| s.to_string());
+      if let Some(webgl_params_str) = webgl1_str {
         if let Ok(mut webgl_params) = serde_json::from_str::<serde_json::Value>(&webgl_params_str) {
           if let Some(webgl_obj) = webgl_params.as_object_mut() {
             // 3379 is GL_MAX_TEXTURE_SIZE. Common values: 4096, 8192, 16384
@@ -542,7 +543,8 @@ impl WayfernManager {
       }
 
       // Randomize for WebGL 2.0
-      if let Some(webgl2_params_str) = obj.get("webgl2Parameters").and_then(|v| v.as_str()).cloned() {
+      let webgl2_str = obj.get("webgl2Parameters").and_then(|v| v.as_str()).map(|s| s.to_string());
+      if let Some(webgl2_params_str) = webgl2_str {
         if let Ok(mut webgl2_params) = serde_json::from_str::<serde_json::Value>(&webgl2_params_str) {
           if let Some(webgl2_obj) = webgl2_params.as_object_mut() {
             let random_texture_size = if rand::random() { 8192 } else { 16384 };
