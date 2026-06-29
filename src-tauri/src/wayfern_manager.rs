@@ -416,7 +416,7 @@ impl WayfernManager {
       .send_cdp_command(&ws_url, "Wayfern.getFingerprint", json!({}))
       .await;
 
-    let fingerprint = match get_result {
+    let mut fingerprint = match get_result {
       Ok(result) => {
         // Wayfern.getFingerprint returns { fingerprint: {...} }
         // We need to extract just the fingerprint object
